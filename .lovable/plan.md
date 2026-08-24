@@ -2,12 +2,17 @@
 
 A complete, working storefront with a 90s vintage streetwear look, real cart/checkout flow, Lovable Cloud backend, and a simple admin panel.
 
+## Brand
+
+Use the uploaded 90'S CLOTHING logo (white bold type on black) as the real brand mark in the header, footer, favicon, and order confirmation. It is uploaded to CDN asset hosting and referenced by URL, with an inverted/white-on-dark treatment so it sits cleanly on both light and dark sections.
+
 ## Design direction
 
 - Premium 90s vintage streetwear: warm off-white paper base, deep charcoal/ink text, one bold accent (faded red/orange), subtle grain and halftone texture.
-- Retro-condensed display type for headings (bold, slightly compressed), clean sans for body.
+- Retro-condensed display type for headings (bold, slightly compressed, echoing the logo's heavy geometric feel), clean sans for body.
 - Big product imagery, tight grids, thin rules, uppercase micro-labels, minimal motion (fade/rise on scroll, hover image swap).
 - Mobile-first: hamburger nav, sticky cart, 2-up product grid on phones.
+
 
 ## Pages
 
