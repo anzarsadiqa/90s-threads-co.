@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "sdk_version": "2.0.3",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://ohmtavylsvzwyhgepqdp.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "90-s-threads-co",
+      "version": "0.1.0",
+      "title": "90's Threads Co."
+    },
+    "tools": [
+      {
+        "name": "list_products",
+        "title": "List products",
+        "description": "List store products with price, discount price, category, sizes, colors and stock. Optionally filter by category or search text.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "search": {
+              "description": "Text to match against product name.",
+              "type": "string"
+            },
+            "category": {
+              "description": "Exact category name to filter by.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Maximum rows to return (default 25, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_orders",
+        "title": "List orders",
+        "description": "List customer orders with items, totals and status, newest first. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "status": {
+              "description": "Filter by status: Pending, Confirmed, Shipped, Delivered or Cancelled.",
+              "type": "string"
+            },
+            "order_number": {
+              "description": "Look up a single order by its order number.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Maximum orders to return (default 20, max 100).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_order_status",
+        "title": "Update order status",
+        "description": "Change an order's status to Pending, Confirmed, Shipped, Delivered or Cancelled. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "order_number": {
+              "type": "string",
+              "description": "The order number, e.g. 90S-ABC123."
+            },
+            "status": {
+              "type": "string",
+              "description": "New status: Pending, Confirmed, Shipped, Delivered or Cancelled."
+            }
+          },
+          "required": [
+            "order_number",
+            "status"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "update_stock",
+        "title": "Update product stock",
+        "description": "Set the stock quantity of a product. Requires an admin account.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "product_id": {
+              "type": "string",
+              "description": "Product id (uuid)."
+            },
+            "stock": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991,
+              "description": "New stock quantity, zero or more."
+            }
+          },
+          "required": [
+            "product_id",
+            "stock"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
