@@ -60,10 +60,7 @@ export function supabaseForUser(ctx: ToolContext) {
 
 export async function requireAdmin(ctx: ToolContext) {
   const supabase = supabaseForUser(ctx);
-  const { data, error } = await supabase.rpc("has_role", {
-    _user_id: ctx.getUserId(),
-    _role: "admin",
-  });
+  const { data, error } = await supabase.rpc("is_admin");
   if (error) throw new Error(error.message);
   if (!data) throw new Error("This account does not have admin access.");
   return supabase;
