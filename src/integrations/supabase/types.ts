@@ -29,7 +29,7 @@ export type Database = {
           color?: string | null
           id?: string
           order_id: string
-          price: number
+          price?: number
           product_id?: string | null
           product_name: string
           quantity?: number
@@ -66,9 +66,9 @@ export type Database = {
         Row: {
           address: string
           city: string
-          created_at: string
+          created_at: string | null
           customer_name: string
-          email: string
+          email: string | null
           id: string
           order_number: string
           payment_method: string
@@ -81,9 +81,9 @@ export type Database = {
         Insert: {
           address: string
           city: string
-          created_at?: string
+          created_at?: string | null
           customer_name: string
-          email: string
+          email?: string | null
           id?: string
           order_number: string
           payment_method?: string
@@ -91,14 +91,14 @@ export type Database = {
           pincode: string
           state: string
           status?: string
-          total_amount: number
+          total_amount?: number
         }
         Update: {
           address?: string
           city?: string
-          created_at?: string
+          created_at?: string | null
           customer_name?: string
-          email?: string
+          email?: string | null
           id?: string
           order_number?: string
           payment_method?: string
@@ -112,64 +112,61 @@ export type Database = {
       }
       products: {
         Row: {
-          category: string
-          colors: string[]
-          created_at: string
-          description: string
+          category: string | null
+          colors: string[] | null
+          created_at: string | null
+          description: string | null
           discount_price: number | null
           id: string
-          images: string[]
+          images: string[] | null
           name: string
           price: number
-          sizes: string[]
+          sizes: string[] | null
           stock: number
         }
         Insert: {
-          category: string
-          colors?: string[]
-          created_at?: string
-          description?: string
+          category?: string | null
+          colors?: string[] | null
+          created_at?: string | null
+          description?: string | null
           discount_price?: number | null
           id?: string
-          images?: string[]
+          images?: string[] | null
           name: string
-          price: number
-          sizes?: string[]
+          price?: number
+          sizes?: string[] | null
           stock?: number
         }
         Update: {
-          category?: string
-          colors?: string[]
-          created_at?: string
-          description?: string
+          category?: string | null
+          colors?: string[] | null
+          created_at?: string | null
+          description?: string | null
           discount_price?: number | null
           id?: string
-          images?: string[]
+          images?: string[] | null
           name?: string
           price?: number
-          sizes?: string[]
+          sizes?: string[] | null
           stock?: number
         }
         Relationships: []
       }
-      user_roles: {
+      profiles: {
         Row: {
-          created_at: string
+          created_at: string | null
           id: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          role: string
         }
         Insert: {
-          created_at?: string
-          id?: string
-          role: Database["public"]["Enums"]["app_role"]
-          user_id: string
+          created_at?: string | null
+          id: string
+          role?: string
         }
         Update: {
-          created_at?: string
+          created_at?: string | null
           id?: string
-          role?: Database["public"]["Enums"]["app_role"]
-          user_id?: string
+          role?: string
         }
         Relationships: []
       }
@@ -178,16 +175,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
+      is_admin: { Args: never; Returns: boolean }
     }
     Enums: {
-      app_role: "admin" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -314,8 +305,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "user"],
-    },
+    Enums: {},
   },
 } as const
