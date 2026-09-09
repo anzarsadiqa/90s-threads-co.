@@ -97,7 +97,7 @@ export function ProductImagePicker({ value, onChange }: Props) {
   const makeFirst = (index: number) => {
     const next = [...value];
     const [item] = next.splice(index, 1);
-    onChange([item, ...next]);
+    if (item) onChange([item, ...next]);
   };
 
   const addFromGallery = (url: string) => {
