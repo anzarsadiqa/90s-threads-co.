@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
+import { ProductImagePicker } from "@/components/admin/ProductImagePicker";
 import { supabase } from "@/integrations/supabase/client";
 import {
   adminListOrders,
