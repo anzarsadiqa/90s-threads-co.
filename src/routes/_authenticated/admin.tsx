@@ -5,6 +5,7 @@ import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
+import { ProductImagePicker } from "@/components/admin/ProductImagePicker";
 import { supabase } from "@/integrations/supabase/client";
 import {
   adminListOrders,
@@ -377,14 +378,10 @@ function AdminPage() {
                 </select>
               </label>
             </div>
-            <label className="block">
-              <span className="micro-label">Image URLs (comma separated)</span>
-              <input
-                value={draft.images}
-                onChange={(e) => setDraft({ ...draft, images: e.target.value })}
-                className="mt-2 w-full border border-ink/25 bg-background px-3 py-2.5 text-sm outline-none focus:border-accent"
-              />
-            </label>
+            <ProductImagePicker
+              value={list(draft.images)}
+              onChange={(images) => setDraft({ ...draft, images: images.join(", ") })}
+            />
             <label className="block">
               <span className="micro-label">Description</span>
               <textarea

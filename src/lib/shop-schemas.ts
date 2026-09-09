@@ -44,7 +44,7 @@ export const productSchema = z.object({
   price: z.number().min(1).max(1000000),
   discount_price: z.number().min(0).max(1000000).nullable(),
   category: z.string().trim().min(2).max(60),
-  images: z.array(z.string().trim().min(1).max(500)).max(6),
+  images: z.array(z.string().trim().min(1).max(1000)).max(6),
   sizes: z.array(z.string().trim().min(1).max(20)).max(20),
   colors: z.array(z.string().trim().min(1).max(40)).max(20),
   stock: z.number().int().min(0).max(100000),
