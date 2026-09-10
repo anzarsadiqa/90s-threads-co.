@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 import { lineKey, useCart } from "@/lib/cart";
+import { COD_FEE, FREE_DELIVERY_ABOVE, orderCharges } from "@/lib/business";
 import { formatINR } from "@/lib/types";
 
 export const Route = createFileRoute("/cart")({
@@ -19,11 +20,14 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const cart = useCart();
-  const shipping = cart.subtotal >= 1999 || cart.subtotal === 0 ? 0 : 99;
+  const charges = orderCharges(cart.subtotal);
 
   return (
     <StoreLayout>
-      <PageHeader title="Your cart" subtitle="Free shipping on orders above ₹1999." />
+      <PageHeader
+        title="Your cart"
+        subtitle={`Free delivery on orders above ${formatINR(FREE_DELIVERY_ABOVE)} · ${formatINR(COD_FEE)} cash on delivery charge`}
+      />
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         {cart.lines.length === 0 ? (
           <div className="py-16 text-center">
@@ -96,12 +100,18 @@ function CartPage() {
                   <dd className="font-bold">{formatINR(cart.subtotal)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Shipping</dt>
-                  <dd className="font-bold">{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
+                  <dt className="text-muted-foreground">Delivery</dt>
+                  <dd className="font-bold">
+                    {charges.delivery === 0 ? "Free" : formatINR(charges.delivery)}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Cash on delivery charge</dt>
+                  <dd className="font-bold">{formatINR(charges.cod)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-ink/15 pt-3 text-base">
                   <dt className="font-bold uppercase">Total</dt>
-                  <dd className="font-bold">{formatINR(cart.subtotal + shipping)}</dd>
+                  <dd className="font-bold">{formatINR(charges.total)}</dd>
                 </div>
               </dl>
               <Link

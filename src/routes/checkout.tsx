@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 import { useCart } from "@/lib/cart";
 import { placeOrder } from "@/lib/shop.functions";
+import {
+  COD_FEE,
+  DELIVERY_DAYS,
+  FREE_DELIVERY_ABOVE,
+  RETURN_POLICY,
+  orderCharges,
+} from "@/lib/business";
 import { formatINR } from "@/lib/types";
 
 export const Route = createFileRoute("/checkout")({
@@ -36,7 +43,7 @@ function CheckoutPage() {
   const submitOrder = useServerFn(placeOrder);
   const [error, setError] = useState<string | null>(null);
 
-  const shipping = cart.subtotal >= 1999 || cart.subtotal === 0 ? 0 : 99;
+  const charges = orderCharges(cart.subtotal);
 
   const mutation = useMutation({
     mutationFn: (form: Record<string, string>) =>
@@ -118,9 +125,19 @@ function CheckoutPage() {
               />
             </label>
 
-            <div className="border border-ink/15 bg-card p-4">
+            <div className="space-y-2 border border-ink/15 bg-card p-4 text-sm">
               <p className="micro-label">Payment method</p>
-              <p className="mt-2 text-sm">Cash on delivery — pay when your parcel arrives.</p>
+              <p>Cash on delivery — pay when your parcel arrives.</p>
+              <p className="font-bold">
+                An additional cash on delivery charge of {formatINR(COD_FEE)} applies to this order.
+              </p>
+              <p className="text-muted-foreground">
+                {charges.delivery === 0
+                  ? `Delivery is free on this order (above ${formatINR(FREE_DELIVERY_ABOVE)}).`
+                  : `Delivery ${formatINR(charges.delivery)} — free above ${formatINR(FREE_DELIVERY_ABOVE)}.`}{" "}
+                Estimated delivery in {DELIVERY_DAYS}.
+              </p>
+              <p className="text-muted-foreground">{RETURN_POLICY}</p>
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
@@ -130,7 +147,7 @@ function CheckoutPage() {
               disabled={mutation.isPending}
               className="micro-label w-full bg-ink py-4 text-paper transition-colors hover:bg-accent disabled:opacity-50"
             >
-              {mutation.isPending ? "Placing order…" : `Place order · ${formatINR(cart.subtotal + shipping)}`}
+              {mutation.isPending ? "Placing order…" : `Place order · ${formatINR(charges.total)}`}
             </button>
           </form>
 
@@ -156,12 +173,18 @@ function CheckoutPage() {
                 <dd className="font-bold">{formatINR(cart.subtotal)}</dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Shipping</dt>
-                <dd className="font-bold">{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
+                <dt className="text-muted-foreground">Delivery</dt>
+                <dd className="font-bold">
+                  {charges.delivery === 0 ? "Free" : formatINR(charges.delivery)}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-muted-foreground">Cash on delivery charge</dt>
+                <dd className="font-bold">{formatINR(charges.cod)}</dd>
               </div>
               <div className="flex justify-between border-t border-ink/15 pt-2 text-base">
-                <dt className="font-bold uppercase">Total</dt>
-                <dd className="font-bold">{formatINR(cart.subtotal + shipping)}</dd>
+                <dt className="font-bold uppercase">Total to pay</dt>
+                <dd className="font-bold">{formatINR(charges.total)}</dd>
               </div>
             </dl>
           </aside>

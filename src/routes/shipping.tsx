@@ -1,17 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
+import {
+  BUSINESS,
+  COD_FEE,
+  DELIVERY_DAYS,
+  DELIVERY_FEE,
+  FREE_DELIVERY_ABOVE,
+  telHref,
+  whatsappHref,
+} from "@/lib/business";
+import { formatINR } from "@/lib/types";
 
 export const Route = createFileRoute("/shipping")({
   head: () => ({
     meta: [
-      { title: "Shipping & Returns — 90'S CLOTHING" },
+      { title: "Delivery & Returns — 90'S CLOTHING" },
       {
         name: "description",
-        content:
-          "Delivery timelines, shipping charges, cash on delivery and the 7-day return process at 90'S Clothing.",
+        content: `Delivery in ${DELIVERY_DAYS}, ${formatINR(DELIVERY_FEE)} delivery charge, free above ${formatINR(FREE_DELIVERY_ABOVE)}, ${formatINR(COD_FEE)} cash on delivery charge.`,
       },
-      { property: "og:title", content: "Shipping & Returns — 90'S CLOTHING" },
-      { property: "og:description", content: "Free shipping over ₹1999 and 7-day easy returns." },
+      { property: "og:title", content: "Delivery & Returns — 90'S CLOTHING" },
+      {
+        property: "og:description",
+        content: `Free delivery above ${formatINR(FREE_DELIVERY_ABOVE)} · Damaged-product returns within 7 days.`,
+      },
     ],
   }),
   component: ShippingPage,
@@ -20,35 +32,49 @@ export const Route = createFileRoute("/shipping")({
 function ShippingPage() {
   return (
     <StoreLayout>
-      <PageHeader title="Shipping & returns" subtitle="Pan-India delivery with cash on delivery." />
+      <PageHeader title="Delivery & returns" subtitle="Delivery across India with cash on delivery." />
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-14 text-sm leading-relaxed text-muted-foreground sm:px-6">
         <section>
-          <h2 className="mb-3 text-xl text-foreground">Delivery</h2>
+          <h2 className="mb-3 text-xl text-foreground">Delivery time</h2>
+          <p>Estimated delivery is {DELIVERY_DAYS} after your order is placed. We deliver across India.</p>
+        </section>
+        <section>
+          <h2 className="mb-3 text-xl text-foreground">Delivery charges</h2>
           <p>
-            Orders are packed within 24–48 hours. Delivery takes 3–6 working days across India, and
-            usually 3 days to metro cities. You'll get your order number the moment you check out.
+            Standard delivery is {formatINR(DELIVERY_FEE)}. Delivery is free on orders above{" "}
+            {formatINR(FREE_DELIVERY_ABOVE)}.
           </p>
         </section>
         <section>
-          <h2 className="mb-3 text-xl text-foreground">Charges</h2>
+          <h2 className="mb-3 text-xl text-foreground">Cash on delivery</h2>
           <p>
-            Shipping is free on orders above ₹1999. Below that a flat ₹99 applies. Cash on delivery
-            carries no extra fee.
+            All orders are cash on delivery. An additional cash on delivery charge of{" "}
+            {formatINR(COD_FEE)} applies to every order and is shown in your order total before you
+            place the order.
           </p>
         </section>
         <section>
           <h2 className="mb-3 text-xl text-foreground">Returns & exchanges</h2>
           <p>
-            Return or exchange anything within 7 days of delivery as long as it is unworn, unwashed
-            and has the original tags. Email hello@90sclothing.in with your order number and we'll
-            arrange a pickup. Refunds land within 5–7 working days of the parcel reaching us.
+            Returns are accepted only if the product is delivered damaged. The request must be made
+            within 7 days of delivery, and an unboxing video is required as proof for every
+            damaged-product return. We do not accept returns for size issues or change of mind.
           </p>
-        </section>
-        <section>
-          <h2 className="mb-3 text-xl text-foreground">Damaged or wrong item</h2>
-          <p>
-            Send a photo within 48 hours of delivery and we'll ship a replacement at our cost — no
-            return shipping charges for you.
+          <p className="mt-3">
+            To raise a damaged-product request,{" "}
+            <a href={telHref} className="font-bold text-foreground underline">
+              call {BUSINESS.phoneDisplay}
+            </a>{" "}
+            or{" "}
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-bold text-foreground underline"
+            >
+              message us on WhatsApp
+            </a>{" "}
+            with your order number and the unboxing video.
           </p>
         </section>
       </div>
