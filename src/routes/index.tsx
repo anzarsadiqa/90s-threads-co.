@@ -41,7 +41,7 @@ function HomePage() {
           className="absolute inset-0 size-full object-cover opacity-65"
         />
         <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-24 sm:px-6">
-          <p className="micro-label rise text-paper/70">Est. 1994 · Made in India</p>
+          <p className="micro-label rise text-paper/70">EST. 90'S&nbsp; | MADE IN INDIA</p>
           <h1 className="rise mt-4 max-w-3xl text-5xl text-paper sm:text-7xl lg:text-8xl">
             Dress like the
             <br />
