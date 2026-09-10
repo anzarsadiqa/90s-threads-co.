@@ -1,4 +1,4 @@
-import logo from "@/assets/logo.png.asset.json";
+import logo from "@/assets/logo.png";
 
 export function BrandLogo({
   className = "h-9",
@@ -9,7 +9,7 @@ export function BrandLogo({
 }) {
   return (
     <img
-      src={logo.url}
+      src={logo}
       alt="90'S CLOTHING"
       width={640}
       height={640}

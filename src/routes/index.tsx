@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { ArrowRight, PackageCheck, RotateCcw, Truck } from "lucide-react";
-import hero from "@/assets/hero.jpg.asset.json";
-import banner from "@/assets/banner.jpg.asset.json";
+import hero from "@/assets/hero.jpg";
+import banner from "@/assets/banner.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { StoreLayout } from "@/components/StoreLayout";
 import { productsQuery } from "@/lib/queries";
@@ -36,7 +36,7 @@ function HomePage() {
     <StoreLayout>
       <section className="grain relative isolate overflow-hidden bg-ink">
         <img
-          src={hero.url}
+          src={hero}
           alt="Two friends in oversized 90s streetwear on a city street"
           className="absolute inset-0 size-full object-cover opacity-65"
         />
@@ -119,7 +119,7 @@ function HomePage() {
       <section className="grain relative isolate mx-auto max-w-7xl overflow-hidden px-4 sm:px-6">
         <div className="relative isolate overflow-hidden bg-ink">
           <img
-            src={banner.url}
+            src={banner}
             alt="Vintage denim and graphic tees flat lay"
             loading="lazy"
             className="absolute inset-0 size-full object-cover opacity-55"
