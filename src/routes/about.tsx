@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import banner from "@/assets/banner.jpg.asset.json";
+import banner from "@/assets/banner.jpg";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 
 export const Route = createFileRoute("/about")({
@@ -27,7 +27,7 @@ function AboutPage() {
       <PageHeader title="Our story" subtitle="Vintage proportions, modern cotton, made in India." />
       <div className="mx-auto max-w-3xl px-4 py-14 sm:px-6">
         <img
-          src={banner.url}
+          src={banner}
           alt="Vintage denim and graphic tees flat lay"
           loading="lazy"
           className="aspect-[16/9] w-full object-cover"
