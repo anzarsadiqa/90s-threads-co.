@@ -132,11 +132,10 @@ function CheckoutPage() {
                 An additional cash on delivery charge of {formatINR(COD_FEE)} applies to this order.
               </p>
               <p className="text-muted-foreground">
-                Delivery in {DELIVERY_DAYS}. Delivery is {formatINR(charges.delivery === 0 ? 0 : 100)}
                 {charges.delivery === 0
-                  ? ` (free — your order is above ${formatINR(FREE_DELIVERY_ABOVE)})`
-                  : `, free on orders above ${formatINR(FREE_DELIVERY_ABOVE)}`}
-                .
+                  ? `Delivery is free on this order (above ${formatINR(FREE_DELIVERY_ABOVE)}).`
+                  : `Delivery ${formatINR(charges.delivery)} — free above ${formatINR(FREE_DELIVERY_ABOVE)}.`}{" "}
+                Estimated delivery in {DELIVERY_DAYS}.
               </p>
               <p className="text-muted-foreground">{RETURN_POLICY}</p>
             </div>
