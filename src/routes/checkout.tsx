@@ -125,9 +125,20 @@ function CheckoutPage() {
               />
             </label>
 
-            <div className="border border-ink/15 bg-card p-4">
+            <div className="space-y-2 border border-ink/15 bg-card p-4 text-sm">
               <p className="micro-label">Payment method</p>
-              <p className="mt-2 text-sm">Cash on delivery — pay when your parcel arrives.</p>
+              <p>Cash on delivery — pay when your parcel arrives.</p>
+              <p className="font-bold">
+                An additional cash on delivery charge of {formatINR(COD_FEE)} applies to this order.
+              </p>
+              <p className="text-muted-foreground">
+                Delivery in {DELIVERY_DAYS}. Delivery is {formatINR(charges.delivery === 0 ? 0 : 100)}
+                {charges.delivery === 0
+                  ? ` (free — your order is above ${formatINR(FREE_DELIVERY_ABOVE)})`
+                  : `, free on orders above ${formatINR(FREE_DELIVERY_ABOVE)}`}
+                .
+              </p>
+              <p className="text-muted-foreground">{RETURN_POLICY}</p>
             </div>
 
             {error && <p className="text-sm text-destructive">{error}</p>}
@@ -137,7 +148,7 @@ function CheckoutPage() {
               disabled={mutation.isPending}
               className="micro-label w-full bg-ink py-4 text-paper transition-colors hover:bg-accent disabled:opacity-50"
             >
-              {mutation.isPending ? "Placing order…" : `Place order · ${formatINR(cart.subtotal + shipping)}`}
+              {mutation.isPending ? "Placing order…" : `Place order · ${formatINR(charges.total)}`}
             </button>
           </form>
 
