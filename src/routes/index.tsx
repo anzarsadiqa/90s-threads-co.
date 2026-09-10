@@ -41,15 +41,12 @@ function HomePage() {
           className="absolute inset-0 size-full object-cover opacity-65"
         />
         <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-24 sm:px-6">
-          <p className="micro-label rise text-paper/70">EST. 90'S&nbsp; | MADE IN INDIA</p>
+          <p className="micro-label rise text-paper/70">90S CLOTHING&nbsp; || MADE IN INDIA</p>
           <h1 className="rise mt-4 max-w-3xl text-5xl text-paper sm:text-7xl lg:text-8xl">
-            Dress like the
-            <br />
-            decade never ended
+            TIMELESS STYLE FROM THE 90S
           </h1>
           <p className="rise mt-5 max-w-xl text-sm text-paper/75 sm:text-base">
-            Heavyweight cotton, boxy shoulders, baggy legs. Vintage silhouettes cut for today,
-            delivered anywhere in India with cash on delivery.
+            Vintage streetwear. Premium quality. Made for those who never follow, they set the vibe.
           </p>
           <div className="rise mt-8 flex flex-wrap gap-3">
             <Link
