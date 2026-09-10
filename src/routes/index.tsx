@@ -42,10 +42,11 @@ function HomePage() {
         />
         <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-24 sm:px-6">
           <p className="micro-label rise text-paper/70">90S CLOTHING&nbsp; || MADE IN INDIA</p>
-          <h1 className="rise mt-4 max-w-3xl text-5xl text-paper sm:text-7xl lg:text-8xl">
+          <h1 className="rise mt-4 max-w-2xl text-4xl text-paper sm:text-5xl lg:text-6xl">
             TIMELESS STYLE FROM THE 90S
           </h1>
-          <p className="rise mt-5 max-w-xl text-sm text-paper/75 sm:text-base">
+          <p className="rise mt-5 max-w-md text-sm text-paper/75 sm:text-base">
+
             Vintage streetwear. Premium quality. Made for those who never follow, they set the vibe.
           </p>
           <div className="rise mt-8 flex flex-wrap gap-3">

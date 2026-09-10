@@ -12,7 +12,7 @@ export function SiteFooter() {
             Vintage-cut streetwear built in India. Heavyweight cotton, boxy fits, 90s energy.
           </p>
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/90sclothin.bhopal/"
             target="_blank"
             rel="noreferrer noopener"
             className="micro-label inline-flex items-center gap-2 text-paper/70 hover:text-paper"
