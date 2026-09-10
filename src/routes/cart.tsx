@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 import { lineKey, useCart } from "@/lib/cart";
+import { COD_FEE, FREE_DELIVERY_ABOVE, orderCharges } from "@/lib/business";
 import { formatINR } from "@/lib/types";
 
 export const Route = createFileRoute("/cart")({
@@ -19,11 +20,14 @@ export const Route = createFileRoute("/cart")({
 
 function CartPage() {
   const cart = useCart();
-  const shipping = cart.subtotal >= 1999 || cart.subtotal === 0 ? 0 : 99;
+  const charges = orderCharges(cart.subtotal);
 
   return (
     <StoreLayout>
-      <PageHeader title="Your cart" subtitle="Free shipping on orders above ₹1999." />
+      <PageHeader
+        title="Your cart"
+        subtitle={`Free delivery on orders above ${formatINR(FREE_DELIVERY_ABOVE)} · ${formatINR(COD_FEE)} cash on delivery charge`}
+      />
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         {cart.lines.length === 0 ? (
           <div className="py-16 text-center">
