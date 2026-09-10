@@ -37,7 +37,7 @@ function HomePage() {
       <section className="grain relative isolate overflow-hidden bg-ink">
         <img
           src={hero}
-          alt="Two friends in oversized 90s streetwear on a city street"
+          alt="Three friends in baggy jeans and oversized 90s streetwear on concrete steps"
           className="absolute inset-0 size-full object-cover opacity-65"
         />
         <div className="relative mx-auto flex min-h-[78vh] max-w-7xl flex-col justify-end px-4 pb-16 pt-24 sm:px-6">
