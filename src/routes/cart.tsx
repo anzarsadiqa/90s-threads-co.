@@ -100,12 +100,18 @@ function CartPage() {
                   <dd className="font-bold">{formatINR(cart.subtotal)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Shipping</dt>
-                  <dd className="font-bold">{shipping === 0 ? "Free" : formatINR(shipping)}</dd>
+                  <dt className="text-muted-foreground">Delivery</dt>
+                  <dd className="font-bold">
+                    {charges.delivery === 0 ? "Free" : formatINR(charges.delivery)}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-muted-foreground">Cash on delivery charge</dt>
+                  <dd className="font-bold">{formatINR(charges.cod)}</dd>
                 </div>
                 <div className="flex justify-between border-t border-ink/15 pt-3 text-base">
                   <dt className="font-bold uppercase">Total</dt>
-                  <dd className="font-bold">{formatINR(cart.subtotal + shipping)}</dd>
+                  <dd className="font-bold">{formatINR(charges.total)}</dd>
                 </div>
               </dl>
               <Link
