@@ -6,6 +6,13 @@ import { toast } from "sonner";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 import { useCart } from "@/lib/cart";
 import { placeOrder } from "@/lib/shop.functions";
+import {
+  COD_FEE,
+  DELIVERY_DAYS,
+  FREE_DELIVERY_ABOVE,
+  RETURN_POLICY,
+  orderCharges,
+} from "@/lib/business";
 import { formatINR } from "@/lib/types";
 
 export const Route = createFileRoute("/checkout")({
@@ -36,7 +43,7 @@ function CheckoutPage() {
   const submitOrder = useServerFn(placeOrder);
   const [error, setError] = useState<string | null>(null);
 
-  const shipping = cart.subtotal >= 1999 || cart.subtotal === 0 ? 0 : 99;
+  const charges = orderCharges(cart.subtotal);
 
   const mutation = useMutation({
     mutationFn: (form: Record<string, string>) =>
