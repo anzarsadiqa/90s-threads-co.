@@ -63,7 +63,8 @@ export const placeOrder = createServerFn({ method: "POST" })
       };
     });
 
-    const total = priced.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const subtotal = priced.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const { total } = orderCharges(subtotal);
     const orderNumber = `90S-${Date.now().toString(36).toUpperCase()}${Math.floor(
       Math.random() * 900 + 100,
     )}`;
