@@ -99,6 +99,21 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/return-policy" className="text-paper/80 hover:text-paper">
+                Return Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="/refund-policy" className="text-paper/80 hover:text-paper">
+                Refund Policy
+              </Link>
+            </li>
+            <li>
+              <Link to="/disclaimer" className="text-paper/80 hover:text-paper">
+                Disclaimer
+              </Link>
+            </li>
+            <li>
               <Link to="/terms" className="text-paper/80 hover:text-paper">
                 Terms
               </Link>

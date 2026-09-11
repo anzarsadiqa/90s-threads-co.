@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Clock, MapPin, MessageCircle, Phone } from "lucide-react";
+import { MapPin, MessageCircle, Phone } from "lucide-react";
 import { PageHeader, StoreLayout } from "@/components/StoreLayout";
 import { BUSINESS, mapsHref, telHref, whatsappHref } from "@/lib/business";
 
@@ -13,6 +13,8 @@ export const Route = createFileRoute("/contact")({
       },
       { property: "og:title", content: "Contact — 90'S CLOTHING" },
       { property: "og:description", content: "Call or WhatsApp us, or visit the store in Bhopal." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: ContactPage,
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/contact")({
 function ContactPage() {
   return (
     <StoreLayout>
-      <PageHeader title="Contact us" subtitle={`Open daily ${BUSINESS.hours}`} />
+      <PageHeader title="Contact us" subtitle="Call, WhatsApp or visit us in Bhopal." />
       <div className="mx-auto max-w-3xl space-y-8 px-4 py-14 sm:px-6">
         <div className="grid gap-3 sm:grid-cols-2">
           <a
@@ -48,13 +50,6 @@ function ContactPage() {
               <a href={mapsHref} target="_blank" rel="noreferrer noopener" className="mt-1 block font-bold">
                 {BUSINESS.address}
               </a>
-            </div>
-          </div>
-          <div className="flex items-start gap-3 border-b border-ink/10 pb-5">
-            <Clock className="mt-0.5 size-5 text-accent" />
-            <div>
-              <p className="micro-label text-muted-foreground">Business hours</p>
-              <p className="mt-1 font-bold">{BUSINESS.hours}</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
