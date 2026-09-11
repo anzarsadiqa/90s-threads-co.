@@ -77,6 +77,11 @@ export function SiteFooter() {
                 FAQ
               </Link>
             </li>
+            <li>
+              <Link to="/auth" className="text-paper/80 hover:text-paper">
+                Admin login
+              </Link>
+            </li>
           </ul>
         </div>
 
