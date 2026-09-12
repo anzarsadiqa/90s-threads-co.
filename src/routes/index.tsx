@@ -129,7 +129,7 @@ function HomePage() {
             </h2>
             <Link
               to="/shop"
-              search={{ category: "Baggy Jeans" }}
+              search={{ category: "Jeans" }}
               className="micro-label mt-8 inline-flex bg-accent px-6 py-3.5 text-accent-foreground transition-opacity hover:opacity-90"
             >
               Shop denim

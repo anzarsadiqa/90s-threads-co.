@@ -23,12 +23,17 @@ export const ORDER_STATUSES: OrderStatus[] = [
 ];
 
 export const CATEGORIES = [
+  "Shirts",
+  "Linen Pants",
+  "Jeans",
+  "T-Shirts",
   "Oversized T-Shirts",
-  "Graphic Tees",
-  "Baggy Jeans",
-  "Cargo Pants",
   "Hoodies",
+  "Cargo Pants",
+  "Baggy Pants",
   "Jackets",
+  "Sweatshirts",
+  "Tracksuits",
 ] as const;
 
 export type OrderItem = {
