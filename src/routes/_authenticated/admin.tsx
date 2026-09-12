@@ -432,6 +432,8 @@ function AdminPage() {
                   <span className="micro-label">{label}</span>
                   <input
                     type={type}
+                    step={key === "weight_kg" ? "0.01" : undefined}
+                    min={key === "weight_kg" ? "0.01" : undefined}
                     required={key === "name" || key === "price" || key === "stock"}
                     value={draft[key]}
                     onChange={(e) => setDraft({ ...draft, [key]: e.target.value })}
@@ -482,6 +484,40 @@ function AdminPage() {
               >
                 Cancel
               </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {shippingDraft && (
+        <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink/70 p-4">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              shippingMutation.mutate(shippingDraft);
+            }}
+            className="my-8 w-full max-w-2xl space-y-4 border border-ink/20 bg-card p-6"
+          >
+            <h2 className="text-2xl">Shipping settings</h2>
+            <label className="block">
+              <span className="micro-label">Shiprocket pickup nickname</span>
+              <input required value={shippingDraft.pickup_location} onChange={(event) => setShippingDraft({ ...shippingDraft, pickup_location: event.target.value })} className="mt-2 w-full border border-ink/25 bg-background px-3 py-2.5 text-sm" />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {([[
+                "package_length_cm", "Length (cm)"],
+                ["package_breadth_cm", "Breadth (cm)"],
+                ["package_height_cm", "Height (cm)"],
+                ["default_weight_kg", "Default weight (kg)"],
+              ] as const).map(([key, label]) => (
+                <label key={key} className="block">
+                  <span className="micro-label">{label}</span>
+                  <input type="number" min="0.51" step="0.01" required value={shippingDraft[key]} onChange={(event) => setShippingDraft({ ...shippingDraft, [key]: Number(event.target.value) })} className="mt-2 w-full border border-ink/25 bg-background px-3 py-2.5 text-sm" />
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button type="submit" disabled={shippingMutation.isPending} className="micro-label flex-1 bg-ink py-3.5 text-paper disabled:opacity-50">Save settings</button>
+              <button type="button" onClick={() => setShippingDraft(null)} className="micro-label flex-1 border border-ink/25 py-3.5">Cancel</button>
             </div>
           </form>
         </div>
