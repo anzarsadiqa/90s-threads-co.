@@ -76,37 +76,47 @@ function ProductPage() {
   }, [product]);
 
   if (!product) return null;
-  const price = effectivePrice(product);
-  const onSale = product.discount_price != null && product.discount_price < product.price;
-  const related = all.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const currentProduct = product;
+  const price = effectivePrice(currentProduct);
+  const onSale =
+    currentProduct.discount_price != null && currentProduct.discount_price < currentProduct.price;
+  const related = all
+    .filter((p) => p.category === currentProduct.category && p.id !== currentProduct.id)
+    .slice(0, 4);
 
   function addToCart() {
-    if (product.stock <= 0) return;
+    if (currentProduct.stock <= 0) return;
     cart.add({
-      product_id: product.id,
-      name: product.name,
-      image: product.images[image] ?? product.images[0] ?? "",
+      product_id: currentProduct.id,
+      name: currentProduct.name,
+      image: currentProduct.images[image] ?? currentProduct.images[0] ?? "",
       price,
       size,
       color,
       quantity: qty,
     });
     toast.success("Added to cart", {
-      description: `${product.name}${color ? ` · ${color}` : ""} × ${qty}`,
+      description: `${currentProduct.name}${color ? ` · ${color}` : ""} × ${qty}`,
     });
   }
 
   function selectColor(nextColor: string, colorIndex: number) {
     setColor(nextColor);
-    if (product.images.length === product.colors.length && product.images[colorIndex]) {
+    if (
+      currentProduct.images.length === currentProduct.colors.length &&
+      currentProduct.images[colorIndex]
+    ) {
       setImage(colorIndex);
     }
   }
 
   function selectImage(imageIndex: number) {
     setImage(imageIndex);
-    if (product.images.length === product.colors.length && product.colors[imageIndex]) {
-      setColor(product.colors[imageIndex]);
+    if (
+      currentProduct.images.length === currentProduct.colors.length &&
+      currentProduct.colors[imageIndex]
+    ) {
+      setColor(currentProduct.colors[imageIndex]);
     }
   }
 
