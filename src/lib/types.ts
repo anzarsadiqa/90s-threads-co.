@@ -9,6 +9,8 @@ export type Product = {
   sizes: string[];
   colors: string[];
   stock: number;
+  sku: string;
+  weight_kg: number;
   created_at: string;
 };
 
@@ -59,7 +61,24 @@ export type Order = {
   payment_method: string;
   status: string;
   created_at: string;
+  shiprocket_sync_status: "pending" | "processing" | "success" | "failed";
+  shiprocket_order_id: string | null;
+  shiprocket_shipment_id: string | null;
+  shiprocket_awb: string | null;
+  shiprocket_courier: string | null;
+  shiprocket_tracking_url: string | null;
+  shiprocket_tracking_status: string | null;
+  shiprocket_error: string | null;
+  shiprocket_retry_count: number;
   order_items?: OrderItem[];
+};
+
+export type ShippingSettings = {
+  pickup_location: string;
+  package_length_cm: number;
+  package_breadth_cm: number;
+  package_height_cm: number;
+  default_weight_kg: number;
 };
 
 export function formatINR(value: number) {

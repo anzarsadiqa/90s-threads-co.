@@ -2,7 +2,7 @@ import { z } from "zod";
 import { ORDER_STATUSES } from "./types";
 
 export const PRODUCT_COLUMNS =
-  "id, name, description, price, discount_price, category, images, sizes, colors, stock, created_at";
+  "id, name, description, price, discount_price, category, images, sizes, colors, stock, sku, weight_kg, created_at";
 
 export const idSchema = z.object({ id: z.string().uuid() });
 
@@ -48,11 +48,21 @@ export const productSchema = z.object({
   sizes: z.array(z.string().trim().min(1).max(20)).max(20),
   colors: z.array(z.string().trim().min(1).max(40)).max(20),
   stock: z.number().int().min(0).max(100000),
+  sku: z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9._-]+$/),
+  weight_kg: z.number().positive().max(100),
 });
 
 export const orderStatusSchema = z.object({
   id: z.string().uuid(),
   status: z.enum(ORDER_STATUSES as [string, ...string[]]),
+});
+
+export const shippingSettingsSchema = z.object({
+  pickup_location: z.string().trim().min(2).max(200),
+  package_length_cm: z.number().gt(0.5).max(500),
+  package_breadth_cm: z.number().gt(0.5).max(500),
+  package_height_cm: z.number().gt(0.5).max(500),
+  default_weight_kg: z.number().positive().max(100),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

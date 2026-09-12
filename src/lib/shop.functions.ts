@@ -40,7 +40,7 @@ export const placeOrder = createServerFn({ method: "POST" })
     const ids = [...new Set(data.items.map((i) => i.product_id))];
     const { data: products, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, name, price, discount_price, stock")
+      .select("id, name, price, discount_price, stock, sku, weight_kg")
       .in("id", ids);
     if (productError) throw new Error(productError.message);
     if (!products || products.length !== ids.length) {
@@ -48,7 +48,8 @@ export const placeOrder = createServerFn({ method: "POST" })
     }
 
     const priced = data.items.map((item) => {
-      const product = products.find((p) => p.id === item.product_id)!;
+      const product = products.find((p) => p.id === item.product_id);
+      if (!product) throw new Error("Some items in your cart are no longer available.");
       const unit =
         product.discount_price != null && Number(product.discount_price) < Number(product.price)
           ? Number(product.discount_price)
@@ -94,6 +95,13 @@ export const placeOrder = createServerFn({ method: "POST" })
       .insert(priced.map((i) => ({ ...i, order_id: order.id })));
     if (itemsError) throw new Error(itemsError.message);
 
+    try {
+      const { syncOrderToShiprocket } = await import("./shiprocket.server");
+      await syncOrderToShiprocket(supabaseAdmin, order.id);
+    } catch (syncError) {
+      console.error("Shiprocket sync failed after the order was saved:", syncError);
+    }
+
     return { order_number: order.order_number, total_amount: total };
   });
 
@@ -104,7 +112,7 @@ export const getOrderByNumber = createServerFn({ method: "GET" })
     const { data: order, error } = await supabaseAdmin
       .from("orders")
       .select(
-        "id, order_number, customer_name, phone, email, address, city, state, pincode, total_amount, payment_method, status, created_at, order_items(id, product_name, quantity, size, color, price)",
+        "id, order_number, customer_name, phone, email, address, city, state, pincode, total_amount, payment_method, status, created_at, shiprocket_sync_status, shiprocket_order_id, shiprocket_shipment_id, shiprocket_awb, shiprocket_courier, shiprocket_tracking_url, shiprocket_tracking_status, shiprocket_error, shiprocket_retry_count, order_items(id, product_name, quantity, size, color, price)",
       )
       .eq("order_number", data.orderNumber)
       .maybeSingle();
