@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Minus, Plus, ShieldCheck, Truck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ProductCard } from "@/components/ProductCard";
 import { StoreLayout } from "@/components/StoreLayout";
@@ -67,23 +67,57 @@ function ProductPage() {
   const [color, setColor] = useState<string | null>(product?.colors[0] ?? null);
   const [qty, setQty] = useState(1);
 
+  useEffect(() => {
+    if (!product) return;
+    setImage(0);
+    setSize(product.sizes[0] ?? null);
+    setColor(product.colors[0] ?? null);
+    setQty(1);
+  }, [product]);
+
   if (!product) return null;
-  const price = effectivePrice(product);
-  const onSale = product.discount_price != null && product.discount_price < product.price;
-  const related = all.filter((p) => p.category === product.category && p.id !== product.id).slice(0, 4);
+  const currentProduct = product;
+  const price = effectivePrice(currentProduct);
+  const onSale =
+    currentProduct.discount_price != null && currentProduct.discount_price < currentProduct.price;
+  const related = all
+    .filter((p) => p.category === currentProduct.category && p.id !== currentProduct.id)
+    .slice(0, 4);
 
   function addToCart() {
-    if (product!.stock <= 0) return;
+    if (currentProduct.stock <= 0) return;
     cart.add({
-      product_id: product!.id,
-      name: product!.name,
-      image: product!.images[0] ?? "",
+      product_id: currentProduct.id,
+      name: currentProduct.name,
+      image: currentProduct.images[image] ?? currentProduct.images[0] ?? "",
       price,
       size,
       color,
       quantity: qty,
     });
-    toast.success("Added to cart", { description: `${product!.name} × ${qty}` });
+    toast.success("Added to cart", {
+      description: `${currentProduct.name}${color ? ` · ${color}` : ""} × ${qty}`,
+    });
+  }
+
+  function selectColor(nextColor: string, colorIndex: number) {
+    setColor(nextColor);
+    if (
+      currentProduct.images.length === currentProduct.colors.length &&
+      currentProduct.images[colorIndex]
+    ) {
+      setImage(colorIndex);
+    }
+  }
+
+  function selectImage(imageIndex: number) {
+    setImage(imageIndex);
+    if (
+      currentProduct.images.length === currentProduct.colors.length &&
+      currentProduct.colors[imageIndex]
+    ) {
+      setColor(currentProduct.colors[imageIndex]);
+    }
   }
 
   return (
@@ -118,7 +152,9 @@ function ProductPage() {
                   <button
                     key={src}
                     type="button"
-                    onClick={() => setImage(index)}
+                    onClick={() => selectImage(index)}
+                    aria-label={`View image ${index + 1}${product.colors[index] ? `, ${product.colors[index]}` : ""}`}
+                    aria-pressed={index === image}
                     className={`size-20 overflow-hidden border ${
                       index === image ? "border-ink" : "border-transparent"
                     }`}
@@ -172,13 +208,16 @@ function ProductPage() {
               <div className="mt-6">
                 <p className="micro-label mb-2">Colour</p>
                 <div className="flex flex-wrap gap-2">
-                  {product.colors.map((c) => (
+                  {product.colors.map((c, colorIndex) => (
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setColor(c)}
+                      onClick={() => selectColor(c, colorIndex)}
+                      aria-pressed={color === c}
                       className={`micro-label border px-4 py-2.5 ${
-                        color === c ? "border-ink bg-ink text-paper" : "border-ink/25"
+                        color === c
+                          ? "border-ink bg-ink text-paper"
+                          : "border-ink/25 hover:border-ink"
                       }`}
                     >
                       {c}
