@@ -12,10 +12,13 @@ import {
   adminListProducts,
   checkAdmin,
   deleteProduct,
+  getShippingSettings,
+  retryShiprocketSync,
   saveProduct,
+  saveShippingSettings,
   updateOrderStatus,
 } from "@/lib/admin.functions";
-import { CATEGORIES, ORDER_STATUSES, formatINR, type Product } from "@/lib/types";
+import { CATEGORIES, ORDER_STATUSES, formatINR, type Product, type ShippingSettings } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
@@ -41,6 +44,8 @@ type Draft = {
   sizes: string;
   colors: string;
   stock: string;
+  sku: string;
+  weight_kg: string;
 };
 
 const emptyDraft: Draft = {
@@ -54,6 +59,8 @@ const emptyDraft: Draft = {
   sizes: "S, M, L, XL",
   colors: "",
   stock: "10",
+  sku: "",
+  weight_kg: "0.5",
 };
 
 function toDraft(product: Product): Draft {
@@ -68,6 +75,8 @@ function toDraft(product: Product): Draft {
     sizes: product.sizes.join(", "),
     colors: product.colors.join(", "),
     stock: String(product.stock),
+    sku: product.sku,
+    weight_kg: String(product.weight_kg),
   };
 }
 
@@ -86,9 +95,13 @@ function AdminPage() {
   const save = useServerFn(saveProduct);
   const remove = useServerFn(deleteProduct);
   const setStatus = useServerFn(updateOrderStatus);
+  const retryShipment = useServerFn(retryShiprocketSync);
+  const fetchShippingSettings = useServerFn(getShippingSettings);
+  const saveShipping = useServerFn(saveShippingSettings);
 
-  const [tab, setTab] = useState<"products" | "orders">("products");
+  const [tab, setTab] = useState<"products" | "orders" | "shipping">("products");
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [shippingDraft, setShippingDraft] = useState<ShippingSettings | null>(null);
 
   const adminCheck = useQuery({ queryKey: ["is-admin"], queryFn: () => verifyAdmin() });
   const isAdmin = adminCheck.data?.isAdmin === true;
@@ -101,6 +114,11 @@ function AdminPage() {
   const orders = useQuery({
     queryKey: ["admin-orders"],
     queryFn: () => fetchOrders(),
+    enabled: isAdmin,
+  });
+  const shippingSettings = useQuery({
+    queryKey: ["shipping-settings"],
+    queryFn: () => fetchShippingSettings(),
     enabled: isAdmin,
   });
 
@@ -118,6 +136,8 @@ function AdminPage() {
           sizes: list(d.sizes),
           colors: list(d.colors),
           stock: Number(d.stock),
+          sku: d.sku,
+          weight_kg: Number(d.weight_kg),
         },
       }),
     onSuccess: () => {
@@ -144,6 +164,25 @@ function AdminPage() {
     onSuccess: () => {
       toast.success("Order updated");
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const retryMutation = useMutation({
+    mutationFn: (id: string) => retryShipment({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Shiprocket sync completed");
+      queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const shippingMutation = useMutation({
+    mutationFn: (settings: ShippingSettings) => saveShipping({ data: settings }),
+    onSuccess: () => {
+      toast.success("Shipping settings saved");
+      setShippingDraft(null);
+      queryClient.invalidateQueries({ queryKey: ["shipping-settings"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -187,7 +226,7 @@ function AdminPage() {
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink/10 pb-4">
           <div className="flex gap-2">
-            {(["products", "orders"] as const).map((t) => (
+            {(["products", "orders", "shipping"] as const).map((t) => (
               <button
                 key={t}
                 type="button"
@@ -278,7 +317,7 @@ function AdminPage() {
               <p className="py-10 text-center text-sm text-muted-foreground">Loading products…</p>
             )}
           </div>
-        ) : (
+        ) : tab === "orders" ? (
           <div className="mt-8 space-y-4">
             {(orders.data ?? []).map((order) => (
               <div key={order.id} className="border border-ink/15 bg-card p-5">
@@ -293,6 +332,17 @@ function AdminPage() {
                     <p className="micro-label mt-1 text-muted-foreground">
                       {new Date(order.created_at).toLocaleString("en-IN")}
                     </p>
+                    <p className="micro-label mt-2">
+                      Shiprocket: {order.shiprocket_sync_status}
+                      {order.shiprocket_courier ? ` · ${order.shiprocket_courier}` : ""}
+                      {order.shiprocket_awb ? ` · AWB ${order.shiprocket_awb}` : ""}
+                    </p>
+                    {order.shiprocket_tracking_status && (
+                      <p className="micro-label mt-1 text-muted-foreground">Tracking: {order.shiprocket_tracking_status}</p>
+                    )}
+                    {order.shiprocket_error && (
+                      <p className="mt-1 max-w-xl text-xs text-destructive">{order.shiprocket_error}</p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     <p className="text-sm font-bold">{formatINR(order.total_amount)}</p>
@@ -309,6 +359,16 @@ function AdminPage() {
                         </option>
                       ))}
                     </select>
+                    {(order.shiprocket_sync_status === "pending" || order.shiprocket_sync_status === "failed") && (
+                      <button
+                        type="button"
+                        disabled={retryMutation.isPending}
+                        onClick={() => retryMutation.mutate(order.id)}
+                        className="micro-label border border-ink/25 px-3 py-2 disabled:opacity-50"
+                      >
+                        Retry Shiprocket
+                      </button>
+                    )}
                   </div>
                 </div>
                 <ul className="mt-4 space-y-1 border-t border-ink/10 pt-3 text-sm text-muted-foreground">
@@ -326,6 +386,20 @@ function AdminPage() {
             )}
             {!orders.isLoading && (orders.data ?? []).length === 0 && (
               <p className="py-10 text-center text-sm text-muted-foreground">No orders yet.</p>
+            )}
+          </div>
+        ) : (
+          <div className="mt-8 max-w-2xl">
+            <h2 className="text-2xl">Shipping settings</h2>
+            <p className="mt-2 text-sm text-muted-foreground">Package measurements are used for Shiprocket shipment creation.</p>
+            {shippingSettings.data && (
+              <>
+                <button type="button" onClick={() => setShippingDraft(shippingSettings.data)} className="micro-label mt-6 bg-ink px-5 py-3 text-paper">Edit shipping settings</button>
+                <dl className="mt-6 grid gap-4 border-y border-ink/15 py-5 text-sm sm:grid-cols-2">
+                  <div><dt className="micro-label text-muted-foreground">Pickup location</dt><dd className="mt-1">{shippingSettings.data.pickup_location}</dd></div>
+                  <div><dt className="micro-label text-muted-foreground">Package</dt><dd className="mt-1">{shippingSettings.data.package_length_cm} × {shippingSettings.data.package_breadth_cm} × {shippingSettings.data.package_height_cm} cm · {shippingSettings.data.default_weight_kg} kg default</dd></div>
+                </dl>
+              </>
             )}
           </div>
         )}
@@ -350,6 +424,8 @@ function AdminPage() {
                   ["stock", "Stock", "number"],
                   ["sizes", "Sizes (comma separated)", "text"],
                   ["colors", "Colours (comma separated)", "text"],
+                   ["sku", "SKU (generated if blank)", "text"],
+                   ["weight_kg", "Packed weight (kg)", "number"],
                 ] as const
               ).map(([key, label, type]) => (
                 <label key={key} className="block">

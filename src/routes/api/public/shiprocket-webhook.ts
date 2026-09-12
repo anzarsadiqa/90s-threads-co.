@@ -45,11 +45,12 @@ export const Route = createFileRoute("/api/public/shiprocket-webhook")({
           shiprocket_updated_at: new Date().toISOString(),
         };
         if (awb) updates.shiprocket_awb = awb;
-        if (payload.courier_name || payload.courier) updates.shiprocket_courier = payload.courier_name || payload.courier;
-        if (payload.current_status || payload.status || payload.shipment_status) {
-          updates.shiprocket_tracking_status = payload.current_status || payload.status || payload.shipment_status;
-        }
-        if (payload.track_url || payload.tracking_url) updates.shiprocket_tracking_url = payload.track_url || payload.tracking_url;
+        const courier = payload.courier_name ?? payload.courier;
+        const trackingStatus = payload.current_status ?? payload.status ?? payload.shipment_status;
+        const trackingUrl = payload.track_url ?? payload.tracking_url;
+        if (courier) updates.shiprocket_courier = courier;
+        if (trackingStatus) updates.shiprocket_tracking_status = trackingStatus;
+        if (trackingUrl) updates.shiprocket_tracking_url = trackingUrl;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         let query = supabaseAdmin.from("orders").update(updates);
         query = shipmentId
