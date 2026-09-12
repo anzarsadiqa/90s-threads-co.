@@ -1,0 +1,192 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+const API_BASE = "https://apiv2.shiprocket.in/v1/external";
+
+type AdminClient = SupabaseClient<Database>;
+
+type CreateResponse = {
+  order_id?: number | string;
+  shipment_id?: number | string;
+  status?: string;
+};
+
+type AwbResponse = {
+  response?: {
+    data?: {
+      awb_code?: string;
+      courier_name?: string;
+    };
+  };
+};
+
+export async function syncOrderToShiprocket(supabase: AdminClient, orderId: string) {
+  const email = process.env["SHIPROCKET_EMAIL"];
+  const password = process.env["SHIPROCKET_PASSWORD"];
+  if (!email || !password) throw new Error("Shiprocket credentials are not configured.");
+
+  const { data: claimed, error: claimError } = await supabase
+    .from("orders")
+    .update({
+      shiprocket_sync_status: "processing",
+      shiprocket_last_attempt_at: new Date().toISOString(),
+      shiprocket_error: null,
+    })
+    .eq("id", orderId)
+    .in("shiprocket_sync_status", ["pending", "failed"])
+    .is("shiprocket_order_id", null)
+    .select("*")
+    .maybeSingle();
+  if (claimError) throw new Error(claimError.message);
+
+  if (!claimed) {
+    const { data: existing, error } = await supabase
+      .from("orders")
+      .select("shiprocket_sync_status, shiprocket_order_id, shiprocket_shipment_id, shiprocket_awb")
+      .eq("id", orderId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!existing) throw new Error("Order not found.");
+    return { ok: true, duplicate: true, ...existing };
+  }
+
+  try {
+    const [{ data: items, error: itemsError }, { data: settings, error: settingsError }] =
+      await Promise.all([
+        supabase
+          .from("order_items")
+          .select("product_id, product_name, quantity, price, products(sku, weight_kg)")
+          .eq("order_id", orderId),
+        supabase.from("shipping_settings").select("*").eq("id", true).single(),
+      ]);
+    if (itemsError) throw new Error(itemsError.message);
+    if (settingsError) throw new Error(settingsError.message);
+    if (!items?.length) throw new Error("This order has no items.");
+
+    const token = await authenticate(email, password);
+    const weight = items.reduce((sum, item) => {
+      const product = Array.isArray(item.products) ? item.products[0] : item.products;
+      return sum + Number(product?.weight_kg || settings.default_weight_kg) * item.quantity;
+    }, 0);
+    const orderItems = items.map((item) => {
+      const product = Array.isArray(item.products) ? item.products[0] : item.products;
+      return {
+        name: item.product_name,
+        sku:
+          product?.sku ||
+          `90S-${String(item.product_id).replaceAll("-", "").slice(0, 12).toUpperCase()}`,
+        units: item.quantity,
+        selling_price: Number(item.price),
+      };
+    });
+
+    const created = await requestShiprocket<CreateResponse>(token, "/orders/create/adhoc", {
+      order_id: claimed.order_number,
+      order_date: new Date(claimed.created_at || Date.now())
+        .toISOString()
+        .slice(0, 16)
+        .replace("T", " "),
+      pickup_location: settings.pickup_location,
+      billing_customer_name: claimed.customer_name,
+      billing_last_name: "",
+      billing_address: claimed.address,
+      billing_city: claimed.city,
+      billing_pincode: Number(claimed.pincode),
+      billing_state: claimed.state,
+      billing_country: "India",
+      billing_email: claimed.email || "orders@90sclothing.in",
+      billing_phone: claimed.phone,
+      shipping_is_billing: true,
+      order_items: orderItems,
+      payment_method: "COD",
+      sub_total: Number(claimed.total_amount),
+      length: Number(settings.package_length_cm),
+      breadth: Number(settings.package_breadth_cm),
+      height: Number(settings.package_height_cm),
+      weight: Math.max(weight, Number(settings.default_weight_kg)),
+    });
+    if (!created.order_id || !created.shipment_id) {
+      throw new Error("Shiprocket did not return order and shipment IDs.");
+    }
+
+    let awb: string | null = null;
+    let courier: string | null = null;
+    let awbError: string | null = null;
+    try {
+      const assigned = await requestShiprocket<AwbResponse>(token, "/courier/assign/awb", {
+        shipment_id: created.shipment_id,
+      });
+      awb = assigned.response?.data?.awb_code || null;
+      courier = assigned.response?.data?.courier_name || null;
+    } catch (error) {
+      awbError = safeError(error);
+    }
+
+    const now = new Date().toISOString();
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        shiprocket_sync_status: "success",
+        shiprocket_order_id: String(created.order_id),
+        shiprocket_shipment_id: String(created.shipment_id),
+        shiprocket_awb: awb,
+        shiprocket_courier: courier,
+        shiprocket_tracking_status: created.status || "NEW",
+        shiprocket_error: awbError,
+        shiprocket_synced_at: now,
+        shiprocket_updated_at: now,
+      })
+      .eq("id", orderId);
+    if (updateError) throw new Error(updateError.message);
+    return { ok: true, duplicate: false, orderId: String(created.order_id), shipmentId: String(created.shipment_id), awb, courier };
+  } catch (error) {
+    const message = safeError(error);
+    const { data: current } = await supabase
+      .from("orders")
+      .select("shiprocket_retry_count")
+      .eq("id", orderId)
+      .maybeSingle();
+    await supabase
+      .from("orders")
+      .update({
+        shiprocket_sync_status: "failed",
+        shiprocket_error: message,
+        shiprocket_retry_count: Number(current?.shiprocket_retry_count || 0) + 1,
+        shiprocket_updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId);
+    throw new Error(message);
+  }
+}
+
+async function authenticate(email: string, password: string) {
+  const response = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const body = (await response.json().catch(() => ({}))) as { token?: string; message?: string };
+  if (!response.ok || !body.token) {
+    throw new Error(body.message || `Shiprocket authentication failed (${response.status}).`);
+  }
+  return body.token;
+}
+
+async function requestShiprocket<T>(token: string, path: string, payload: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const body = (await response.json().catch(() => ({}))) as T & { message?: string };
+  if (!response.ok) {
+    throw new Error(body.message || `Shiprocket request failed (${response.status}).`);
+  }
+  return body;
+}
+
+export function safeError(error: unknown) {
+  return (error instanceof Error ? error.message : "Shiprocket sync failed.")
+    .replace(/[\r\n]+/g, " ")
+    .slice(0, 500);
+}

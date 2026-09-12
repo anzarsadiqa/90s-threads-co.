@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { idSchema, orderStatusSchema, productSchema } from "./shop-schemas";
-import type { Order, Product } from "./types";
+import { idSchema, orderStatusSchema, productSchema, shippingSettingsSchema } from "./shop-schemas";
+import type { Order, Product, ShippingSettings } from "./types";
 
 export const checkAdmin = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -17,14 +17,18 @@ export const saveProduct = createServerFn({ method: "POST" })
     const { assertAdmin } = await import("./admin-helpers.server");
     await assertAdmin(context);
     const { id, ...fields } = data;
+    const productFields = {
+      ...fields,
+      sku: fields.sku || `90S-${crypto.randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`,
+    };
     if (id) {
-      const { error } = await context.supabase.from("products").update(fields).eq("id", id);
+      const { error } = await context.supabase.from("products").update(productFields).eq("id", id);
       if (error) throw new Error(error.message);
       return { id };
     }
     const { data: row, error } = await context.supabase
       .from("products")
-      .insert(fields)
+      .insert(productFields)
       .select("id")
       .single();
     if (error) throw new Error(error.message);
@@ -78,6 +82,45 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
       .from("orders")
       .update({ status: data.status })
       .eq("id", data.id);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const retryShiprocketSync = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => idSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("./admin-helpers.server");
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { syncOrderToShiprocket } = await import("./shiprocket.server");
+    return syncOrderToShiprocket(supabaseAdmin, data.id);
+  });
+
+export const getShippingSettings = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertAdmin } = await import("./admin-helpers.server");
+    await assertAdmin(context);
+    const { data, error } = await context.supabase
+      .from("shipping_settings")
+      .select("*")
+      .eq("id", true)
+      .single();
+    if (error) throw new Error(error.message);
+    return data as ShippingSettings;
+  });
+
+export const saveShippingSettings = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => shippingSettingsSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("./admin-helpers.server");
+    await assertAdmin(context);
+    const { error } = await context.supabase
+      .from("shipping_settings")
+      .update(data)
+      .eq("id", true);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

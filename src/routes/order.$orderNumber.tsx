@@ -85,6 +85,28 @@ function OrderPage() {
               </p>
             </div>
 
+            {order.shiprocket_awb && (
+              <div className="mt-6 border-t border-ink/10 pt-6 text-sm">
+                <p className="micro-label mb-2">Shipment tracking</p>
+                <p>
+                  {order.shiprocket_courier || "Courier assigned"} · AWB {order.shiprocket_awb}
+                </p>
+                {order.shiprocket_tracking_status && (
+                  <p className="mt-1 text-muted-foreground">{order.shiprocket_tracking_status}</p>
+                )}
+                {order.shiprocket_tracking_url && (
+                  <a
+                    href={order.shiprocket_tracking_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="micro-label mt-3 inline-block underline"
+                  >
+                    Track shipment
+                  </a>
+                )}
+              </div>
+            )}
+
             <Link
               to="/shop"
               className="micro-label mt-8 block bg-ink py-4 text-center text-paper transition-colors hover:bg-accent"

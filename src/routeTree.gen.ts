@@ -28,6 +28,7 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as OrderOrderNumberRouteImport } from './routes/order.$orderNumber'
 import { Route as ProductIdRouteImport } from './routes/product.$id'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ApiPublicShiprocketWebhookRouteImport } from './routes/api/public/shiprocket-webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -123,6 +124,12 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicShiprocketWebhookRoute =
+  ApiPublicShiprocketWebhookRouteImport.update({
+    id: '/api/public/shiprocket-webhook',
+    path: '/api/public/shiprocket-webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/order/$orderNumber': typeof OrderOrderNumberRoute
   '/product/$id': typeof ProductIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/public/shiprocket-webhook': typeof ApiPublicShiprocketWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -163,6 +171,7 @@ export interface FileRoutesByTo {
   '/order/$orderNumber': typeof OrderOrderNumberRoute
   '/product/$id': typeof ProductIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/public/shiprocket-webhook': typeof ApiPublicShiprocketWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -185,6 +194,7 @@ export interface FileRoutesById {
   '/order/$orderNumber': typeof OrderOrderNumberRoute
   '/product/$id': typeof ProductIdRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/api/public/shiprocket-webhook': typeof ApiPublicShiprocketWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -207,6 +217,7 @@ export interface FileRouteTypes {
     | '/order/$orderNumber'
     | '/product/$id'
     | '/.lovable/oauth/consent'
+    | '/api/public/shiprocket-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -227,6 +238,7 @@ export interface FileRouteTypes {
     | '/order/$orderNumber'
     | '/product/$id'
     | '/.lovable/oauth/consent'
+    | '/api/public/shiprocket-webhook'
   id:
     | '__root__'
     | '/'
@@ -248,6 +260,7 @@ export interface FileRouteTypes {
     | '/order/$orderNumber'
     | '/product/$id'
     | '/.lovable/oauth/consent'
+    | '/api/public/shiprocket-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -269,6 +282,7 @@ export interface RootRouteChildren {
   OrderOrderNumberRoute: typeof OrderOrderNumberRoute
   ProductIdRoute: typeof ProductIdRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  ApiPublicShiprocketWebhookRoute: typeof ApiPublicShiprocketWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -406,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/shiprocket-webhook': {
+      id: '/api/public/shiprocket-webhook'
+      path: '/api/public/shiprocket-webhook'
+      fullPath: '/api/public/shiprocket-webhook'
+      preLoaderRoute: typeof ApiPublicShiprocketWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -439,6 +460,7 @@ const rootRouteChildren: RootRouteChildren = {
   OrderOrderNumberRoute: OrderOrderNumberRoute,
   ProductIdRoute: ProductIdRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  ApiPublicShiprocketWebhookRoute: ApiPublicShiprocketWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
