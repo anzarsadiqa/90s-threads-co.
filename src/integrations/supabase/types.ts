@@ -74,6 +74,18 @@ export type Database = {
           payment_method: string
           phone: string
           pincode: string
+          shiprocket_awb: string | null
+          shiprocket_courier: string | null
+          shiprocket_error: string | null
+          shiprocket_last_attempt_at: string | null
+          shiprocket_order_id: string | null
+          shiprocket_retry_count: number
+          shiprocket_shipment_id: string | null
+          shiprocket_sync_status: string
+          shiprocket_synced_at: string | null
+          shiprocket_tracking_status: string | null
+          shiprocket_tracking_url: string | null
+          shiprocket_updated_at: string | null
           state: string
           status: string
           total_amount: number
@@ -89,6 +101,18 @@ export type Database = {
           payment_method?: string
           phone: string
           pincode: string
+          shiprocket_awb?: string | null
+          shiprocket_courier?: string | null
+          shiprocket_error?: string | null
+          shiprocket_last_attempt_at?: string | null
+          shiprocket_order_id?: string | null
+          shiprocket_retry_count?: number
+          shiprocket_shipment_id?: string | null
+          shiprocket_sync_status?: string
+          shiprocket_synced_at?: string | null
+          shiprocket_tracking_status?: string | null
+          shiprocket_tracking_url?: string | null
+          shiprocket_updated_at?: string | null
           state: string
           status?: string
           total_amount?: number
@@ -104,6 +128,18 @@ export type Database = {
           payment_method?: string
           phone?: string
           pincode?: string
+          shiprocket_awb?: string | null
+          shiprocket_courier?: string | null
+          shiprocket_error?: string | null
+          shiprocket_last_attempt_at?: string | null
+          shiprocket_order_id?: string | null
+          shiprocket_retry_count?: number
+          shiprocket_shipment_id?: string | null
+          shiprocket_sync_status?: string
+          shiprocket_synced_at?: string | null
+          shiprocket_tracking_status?: string | null
+          shiprocket_tracking_url?: string | null
+          shiprocket_updated_at?: string | null
           state?: string
           status?: string
           total_amount?: number
@@ -122,7 +158,9 @@ export type Database = {
           name: string
           price: number
           sizes: string[] | null
+          sku: string
           stock: number
+          weight_kg: number
         }
         Insert: {
           category?: string | null
@@ -135,7 +173,9 @@ export type Database = {
           name: string
           price?: number
           sizes?: string[] | null
+          sku: string
           stock?: number
+          weight_kg?: number
         }
         Update: {
           category?: string | null
@@ -148,7 +188,9 @@ export type Database = {
           name?: string
           price?: number
           sizes?: string[] | null
+          sku?: string
           stock?: number
+          weight_kg?: number
         }
         Relationships: []
       }
@@ -167,6 +209,36 @@ export type Database = {
           created_at?: string | null
           id?: string
           role?: string
+        }
+        Relationships: []
+      }
+      shipping_settings: {
+        Row: {
+          default_weight_kg: number
+          id: boolean
+          package_breadth_cm: number
+          package_height_cm: number
+          package_length_cm: number
+          pickup_location: string
+          updated_at: string
+        }
+        Insert: {
+          default_weight_kg?: number
+          id?: boolean
+          package_breadth_cm: number
+          package_height_cm: number
+          package_length_cm: number
+          pickup_location: string
+          updated_at?: string
+        }
+        Update: {
+          default_weight_kg?: number
+          id?: boolean
+          package_breadth_cm?: number
+          package_height_cm?: number
+          package_length_cm?: number
+          pickup_location?: string
+          updated_at?: string
         }
         Relationships: []
       }
