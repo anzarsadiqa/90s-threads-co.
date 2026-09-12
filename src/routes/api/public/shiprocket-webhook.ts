@@ -35,19 +35,23 @@ export const Route = createFileRoute("/api/public/shiprocket-webhook")({
           return Response.json({ error: "Shipment ID or AWB is required." }, { status: 400 });
         }
 
-        const updates = {
-          shiprocket_awb: awb || undefined,
-          shiprocket_courier: payload.courier_name || payload.courier || undefined,
-          shiprocket_tracking_status:
-            payload.current_status || payload.status || payload.shipment_status || undefined,
-          shiprocket_tracking_url: payload.track_url || payload.tracking_url || undefined,
+        const updates: {
+          shiprocket_awb?: string;
+          shiprocket_courier?: string;
+          shiprocket_tracking_status?: string;
+          shiprocket_tracking_url?: string;
+          shiprocket_updated_at: string;
+        } = {
           shiprocket_updated_at: new Date().toISOString(),
         };
-        const cleanUpdates = Object.fromEntries(
-          Object.entries(updates).filter(([, value]) => value !== undefined),
-        );
+        if (awb) updates.shiprocket_awb = awb;
+        if (payload.courier_name || payload.courier) updates.shiprocket_courier = payload.courier_name || payload.courier;
+        if (payload.current_status || payload.status || payload.shipment_status) {
+          updates.shiprocket_tracking_status = payload.current_status || payload.status || payload.shipment_status;
+        }
+        if (payload.track_url || payload.tracking_url) updates.shiprocket_tracking_url = payload.track_url || payload.tracking_url;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        let query = supabaseAdmin.from("orders").update(cleanUpdates);
+        let query = supabaseAdmin.from("orders").update(updates);
         query = shipmentId
           ? query.eq("shiprocket_shipment_id", shipmentId)
           : query.eq("shiprocket_awb", awb);

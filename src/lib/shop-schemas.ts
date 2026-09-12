@@ -48,7 +48,7 @@ export const productSchema = z.object({
   sizes: z.array(z.string().trim().min(1).max(20)).max(20),
   colors: z.array(z.string().trim().min(1).max(40)).max(20),
   stock: z.number().int().min(0).max(100000),
-  sku: z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9._-]+$/),
+  sku: z.union([z.literal(""), z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9._-]+$/)]),
   weight_kg: z.number().positive().max(100),
 });
 
