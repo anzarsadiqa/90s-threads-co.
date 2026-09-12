@@ -41,10 +41,10 @@ export function SiteFooter() {
             <li>
               <Link
                 to="/shop"
-                search={{ category: "Baggy Jeans" }}
+                search={{ category: "Jeans" }}
                 className="text-paper/80 hover:text-paper"
               >
-                Baggy Jeans
+                Jeans
               </Link>
             </li>
             <li>
