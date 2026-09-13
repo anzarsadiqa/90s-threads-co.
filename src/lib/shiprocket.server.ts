@@ -163,7 +163,7 @@ async function authenticate(email: string, password: string) {
   const response = await fetch(`${API_BASE}/auth/login`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: email.trim(), password }),
   });
   const body = (await response.json().catch(() => ({}))) as { token?: string; message?: string };
   if (!response.ok || !body.token) {
