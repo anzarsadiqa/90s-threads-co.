@@ -94,7 +94,7 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
       billing_pincode: Number(claimed.pincode),
       billing_state: claimed.state,
       billing_country: "India",
-      billing_email: claimed.email || "orders@90sclothing.in",
+      billing_email: claimed.email,
       billing_phone: claimed.phone,
       shipping_is_billing: true,
       order_items: orderItems,
