@@ -2,6 +2,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 const API_BASE = "https://apiv2.shiprocket.in/v1/external";
+const TOKEN_TTL_MS = 9 * 24 * 60 * 60 * 1000;
+
+let cachedToken: { value: string; expiresAt: number } | null = null;
+let authenticationRequest: Promise<string> | null = null;
 
 type AdminClient = SupabaseClient<Database>;
 
@@ -160,16 +164,28 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
 }
 
 async function authenticate(email: string, password: string) {
-  const response = await fetch(`${API_BASE}/auth/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ email: email.trim(), password }),
-  });
-  const body = (await response.json().catch(() => ({}))) as { token?: string; message?: string };
-  if (!response.ok || !body.token) {
-    throw new Error(body.message || `Shiprocket authentication failed (${response.status}).`);
+  if (cachedToken && cachedToken.expiresAt > Date.now()) return cachedToken.value;
+  if (authenticationRequest) return authenticationRequest;
+
+  authenticationRequest = (async () => {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+    const body = (await response.json().catch(() => ({}))) as { token?: string; message?: string };
+    if (!response.ok || !body.token) {
+      throw new Error(body.message || `Shiprocket authentication failed (${response.status}).`);
+    }
+    cachedToken = { value: body.token, expiresAt: Date.now() + TOKEN_TTL_MS };
+    return body.token;
+  })();
+
+  try {
+    return await authenticationRequest;
+  } finally {
+    authenticationRequest = null;
   }
-  return body.token;
 }
 
 async function requestShiprocket<T>(token: string, path: string, payload: unknown): Promise<T> {
