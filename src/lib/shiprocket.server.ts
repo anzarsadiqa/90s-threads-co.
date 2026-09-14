@@ -84,31 +84,36 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
       };
     });
 
-    const created = await requestShiprocket<CreateResponse>(email, password, "/orders/create/adhoc", {
-      order_id: claimed.order_number,
-      order_date: new Date(claimed.created_at || Date.now())
-        .toISOString()
-        .slice(0, 16)
-        .replace("T", " "),
-      pickup_location: settings.pickup_location,
-      billing_customer_name: claimed.customer_name,
-      billing_last_name: "",
-      billing_address: claimed.address,
-      billing_city: claimed.city,
-      billing_pincode: Number(claimed.pincode),
-      billing_state: claimed.state,
-      billing_country: "India",
-      billing_email: claimed.email,
-      billing_phone: claimed.phone,
-      shipping_is_billing: true,
-      order_items: orderItems,
-      payment_method: "COD",
-      sub_total: Number(claimed.total_amount),
-      length: Number(settings.package_length_cm),
-      breadth: Number(settings.package_breadth_cm),
-      height: Number(settings.package_height_cm),
-      weight: Math.max(weight, Number(settings.default_weight_kg)),
-    });
+    const created = await requestShiprocket<CreateResponse>(
+      email,
+      password,
+      "/orders/create/adhoc",
+      {
+        order_id: claimed.order_number,
+        order_date: new Date(claimed.created_at || Date.now())
+          .toISOString()
+          .slice(0, 16)
+          .replace("T", " "),
+        pickup_location: settings.pickup_location,
+        billing_customer_name: claimed.customer_name,
+        billing_last_name: "",
+        billing_address: claimed.address,
+        billing_city: claimed.city,
+        billing_pincode: Number(claimed.pincode),
+        billing_state: claimed.state,
+        billing_country: "India",
+        billing_email: claimed.email,
+        billing_phone: claimed.phone,
+        shipping_is_billing: true,
+        order_items: orderItems,
+        payment_method: "COD",
+        sub_total: Number(claimed.total_amount),
+        length: Number(settings.package_length_cm),
+        breadth: Number(settings.package_breadth_cm),
+        height: Number(settings.package_height_cm),
+        weight: Math.max(weight, Number(settings.default_weight_kg)),
+      },
+    );
     if (!created.order_id || !created.shipment_id) {
       throw new Error("Shiprocket did not return order and shipment IDs.");
     }
@@ -117,9 +122,14 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
     let courier: string | null = null;
     let awbError: string | null = null;
     try {
-      const assigned = await requestShiprocket<AwbResponse>(email, password, "/courier/assign/awb", {
-        shipment_id: created.shipment_id,
-      });
+      const assigned = await requestShiprocket<AwbResponse>(
+        email,
+        password,
+        "/courier/assign/awb",
+        {
+          shipment_id: created.shipment_id,
+        },
+      );
       awb = assigned.response?.data?.awb_code || null;
       courier = assigned.response?.data?.courier_name || null;
     } catch (error) {
@@ -142,7 +152,14 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
       })
       .eq("id", orderId);
     if (updateError) throw new Error(updateError.message);
-    return { ok: true, duplicate: false, orderId: String(created.order_id), shipmentId: String(created.shipment_id), awb, courier };
+    return {
+      ok: true,
+      duplicate: false,
+      orderId: String(created.order_id),
+      shipmentId: String(created.shipment_id),
+      awb,
+      courier,
+    };
   } catch (error) {
     const message = safeError(error);
     const { data: current } = await supabase
