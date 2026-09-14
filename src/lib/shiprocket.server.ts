@@ -173,8 +173,14 @@ async function authenticate(email: string, password: string) {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ email: email.trim(), password }),
     });
-    const body = (await response.json().catch(() => ({}))) as { token?: string; message?: string };
+    const responseText = await response.text();
+    const body = parseShiprocketBody<{ token?: string; message?: string }>(responseText);
     if (!response.ok || !body.token) {
+      if (response.status === 403 && responseText.trimStart().startsWith("<")) {
+        throw new Error(
+          "Shiprocket blocked this server connection (403). Ask Shiprocket support to unblock API access, then retry.",
+        );
+      }
       throw new Error(body.message || `Shiprocket authentication failed (${response.status}).`);
     }
     cachedToken = { value: body.token, expiresAt: Date.now() + TOKEN_TTL_MS };
@@ -199,6 +205,14 @@ async function requestShiprocket<T>(token: string, path: string, payload: unknow
     throw new Error(body.message || `Shiprocket request failed (${response.status}).`);
   }
   return body;
+}
+
+function parseShiprocketBody<T extends object>(value: string): T {
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return {} as T;
+  }
 }
 
 export function safeError(error: unknown) {
