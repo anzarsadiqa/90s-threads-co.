@@ -94,7 +94,14 @@ export const retryShiprocketSync = createServerFn({ method: "POST" })
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { syncOrderToShiprocket } = await import("./shiprocket.server");
-    return syncOrderToShiprocket(supabaseAdmin, data.id);
+    try {
+      return await syncOrderToShiprocket(supabaseAdmin, data.id);
+    } catch (error) {
+      return {
+        ok: false as const,
+        error: error instanceof Error ? error.message : "Shiprocket sync failed.",
+      };
+    }
   });
 
 export const getShippingSettings = createServerFn({ method: "GET" })
