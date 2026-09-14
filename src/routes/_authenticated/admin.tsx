@@ -171,7 +171,7 @@ function AdminPage() {
   const retryMutation = useMutation({
     mutationFn: (id: string) => retryShipment({ data: { id } }),
     onSuccess: (result) => {
-      if (!result.ok) {
+      if ("error" in result) {
         toast.error(result.error);
       } else {
         toast.success("Shiprocket sync completed");
