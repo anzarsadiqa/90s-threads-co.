@@ -2,7 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 const API_BASE = "https://apiv2.shiprocket.in/v1/external";
-const TOKEN_TTL_MS = 9 * 24 * 60 * 60 * 1000;
+const TOKEN_TTL_MS = 240 * 60 * 60 * 1000;
+const TOKEN_EXPIRY_SAFETY_MS = 5 * 60 * 1000;
 
 let cachedToken: { value: string; expiresAt: number } | null = null;
 let authenticationRequest: Promise<string> | null = null;
@@ -67,7 +68,6 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
     if (settingsError) throw new Error(settingsError.message);
     if (!items?.length) throw new Error("This order has no items.");
 
-    const token = await authenticate(email, password);
     const weight = items.reduce((sum, item) => {
       const product = Array.isArray(item.products) ? item.products[0] : item.products;
       return sum + Number(product?.weight_kg || settings.default_weight_kg) * item.quantity;
@@ -84,7 +84,7 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
       };
     });
 
-    const created = await requestShiprocket<CreateResponse>(token, "/orders/create/adhoc", {
+    const created = await requestShiprocket<CreateResponse>(email, password, "/orders/create/adhoc", {
       order_id: claimed.order_number,
       order_date: new Date(claimed.created_at || Date.now())
         .toISOString()
@@ -117,7 +117,7 @@ export async function syncOrderToShiprocket(supabase: AdminClient, orderId: stri
     let courier: string | null = null;
     let awbError: string | null = null;
     try {
-      const assigned = await requestShiprocket<AwbResponse>(token, "/courier/assign/awb", {
+      const assigned = await requestShiprocket<AwbResponse>(email, password, "/courier/assign/awb", {
         shipment_id: created.shipment_id,
       });
       awb = assigned.response?.data?.awb_code || null;
@@ -183,7 +183,10 @@ async function authenticate(email: string, password: string) {
       }
       throw new Error(body.message || `Shiprocket authentication failed (${response.status}).`);
     }
-    cachedToken = { value: body.token, expiresAt: Date.now() + TOKEN_TTL_MS };
+    cachedToken = {
+      value: body.token,
+      expiresAt: Date.now() + TOKEN_TTL_MS - TOKEN_EXPIRY_SAFETY_MS,
+    };
     return body.token;
   })();
 
@@ -194,7 +197,25 @@ async function authenticate(email: string, password: string) {
   }
 }
 
-async function requestShiprocket<T>(token: string, path: string, payload: unknown): Promise<T> {
+async function requestShiprocket<T>(
+  email: string,
+  password: string,
+  path: string,
+  payload: unknown,
+): Promise<T> {
+  const token = await authenticate(email, password);
+  try {
+    return await sendShiprocketRequest<T>(token, path, payload);
+  } catch (error) {
+    if (!(error instanceof ShiprocketHttpError) || error.status !== 401) throw error;
+
+    if (cachedToken?.value === token) cachedToken = null;
+    const refreshedToken = await authenticate(email, password);
+    return sendShiprocketRequest<T>(refreshedToken, path, payload);
+  }
+}
+
+async function sendShiprocketRequest<T>(token: string, path: string, payload: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
@@ -202,9 +223,22 @@ async function requestShiprocket<T>(token: string, path: string, payload: unknow
   });
   const body = (await response.json().catch(() => ({}))) as T & { message?: string };
   if (!response.ok) {
-    throw new Error(body.message || `Shiprocket request failed (${response.status}).`);
+    throw new ShiprocketHttpError(
+      response.status,
+      body.message || `Shiprocket request failed (${response.status}).`,
+    );
   }
   return body;
+}
+
+class ShiprocketHttpError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "ShiprocketHttpError";
+  }
 }
 
 function parseShiprocketBody<T extends object>(value: string): T {
