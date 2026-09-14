@@ -170,8 +170,12 @@ function AdminPage() {
 
   const retryMutation = useMutation({
     mutationFn: (id: string) => retryShipment({ data: { id } }),
-    onSuccess: () => {
-      toast.success("Shiprocket sync completed");
+    onSuccess: (result) => {
+      if ("error" in result) {
+        toast.error(result.error);
+      } else {
+        toast.success("Shiprocket sync completed");
+      }
       queryClient.invalidateQueries({ queryKey: ["admin-orders"] });
     },
     onError: (e: Error) => toast.error(e.message),
